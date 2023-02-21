@@ -4,7 +4,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 # Create your models here.
 #custom user Manager
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, name,tc,password=None,password2=None):
+    def create_user(self, email,rationId ,name,tc,password=None,password2=None):
         """
         Creates and saves a User with the given email, name, tc and password.
         """
@@ -13,6 +13,7 @@ class MyUserManager(BaseUserManager):
 
         user = self.model(
             email=self.normalize_email(email),
+            rationId = rationId,
             name = name,
             tc=tc,
         )
@@ -21,12 +22,13 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, name,tc, password=None):
+    def create_superuser(self, email,rationId ,name,tc, password=None):
         """
         Creates and saves a superuser with the given email, name, tc and password.
         """
         user = self.create_user(
             email,
+            rationId = rationId,
             password=password,
             name=name,
             tc=tc
@@ -43,6 +45,7 @@ class RationUser(AbstractBaseUser):
         max_length=255,
         unique=True,
     )
+    rationId = models.CharField(max_length=255,unique=True)
     name = models.CharField(max_length=200)
     tc = models.BooleanField()
     # date_of_birth = models.DateField()
@@ -54,11 +57,11 @@ class RationUser(AbstractBaseUser):
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name','tc']
+    REQUIRED_FIELDS = ['name','rationId','tc']
 
     def __str__(self):
         return self.email
-
+    
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
@@ -74,3 +77,5 @@ class RationUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+    
+

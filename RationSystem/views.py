@@ -3,11 +3,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from RationSystem.serializer import * 
-from django.contrib.auth import authenticate
+# from django.contrib.auth import authenticate,get_user_model
+from RationSystem.customAuthenticationBackend import RationUserAuthenticationBackend
 from  RationSystem.renderer import UserRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 # Create your views here.
+
+
+
 
 #generate Token Manually
 
@@ -35,32 +41,65 @@ class UserRegistrationView(APIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 # create User Login 
+# class UserLoginView(APIView):
+#     renderer_classes =  [UserRenderer]
+#     def post(self,request,format=None):
+#         serializer = UserLoginSerializer(data=request.data)
+#         if serializer.is_valid(raise_exception=True):
+#             email = serializer.data.get('email')
+#             rationId = serializer.data.get('rationId')
+#             password =  serializer.data.get('password')
+#             user = authenticate(request,email=email,rationId=rationId,password=password)
+            
+#             if user is not None:
+#                  token = get_tokens_for_user(user)
+#                  return Response({
+#                      'token':token,
+#                         "msg":"Login Successful"
+#                         },
+#                         status=status.HTTP_200_OK
+#                         )
+#             else:
+#                 return Response({
+#                     "errors":{
+#                         'none_field_errors':
+#                                     ['email or password is not vaild ']
+#                         }
+#                    },status=status.HTTP_404_NOT_FOUND)
+            
+#         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+
 class UserLoginView(APIView):
-    renderer_classes =  [UserRenderer]
-    def post(self,request,format=None):
+    renderer_classes = [UserRenderer]
+
+    def post(self, request, format=None):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             email = serializer.data.get('email')
-            password =  serializer.data.get('password')
-            user = authenticate(email=email,password=password)
+            rationId = serializer.data.get('rationId')
+            password = serializer.data.get('password')
+            user = RationUserAuthenticationBackend.authenticate(self,request,
+                                                                email=email,
+                                                                rationId=rationId,
+                                                                password=password)
+            print(user)
             if user is not None:
-                 token = get_tokens_for_user(user)
-                 return Response({
-                     'token':token,
-                        "msg":"Login Successful"
-                        },
-                        status=status.HTTP_200_OK
-                        )
+                token = get_tokens_for_user(user)
+                return Response({
+                    'token': token,
+                    "msg": "Login Successful"
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({
-                    "errors":{
+                    "errors": {
                         'none_field_errors':
-                                    ['email or password is not vaild ']
-                        }
-                   },status=status.HTTP_404_NOT_FOUND)
-            
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-                
+                            ['email or rationId or password is not valid']
+                    }
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserProfileView(APIView):
     renderer_classes = [UserRenderer]
@@ -68,8 +107,7 @@ class UserProfileView(APIView):
     def get(self,request,format=None):
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data,status=status.HTTP_200_OK)
-
-
+    
 class UserChangePasswordView(APIView):
   renderer_classes = [UserRenderer]
   permission_classes = [IsAuthenticated]

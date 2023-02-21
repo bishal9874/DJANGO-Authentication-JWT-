@@ -10,7 +10,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password2=serializers.CharField(style={'input_type':'password'},write_only=True)
     class Meta:
         model = RationUser
-        fields =['email','name','tc','password','password2']
+        fields =['email','rationId','name','tc','password','password2']
 
         extra_kwargs={
             'password':{'write_only':True }
@@ -26,20 +26,22 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
     def create(self,validate_data):
         return RationUser.objects.create_user(**validate_data)
+        
 
 # User Login  Serializer
 
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
+    rationId =serializers.CharField(max_length=255)
     class Meta:
         model = RationUser
-        fields = ['email','password']
+        fields = ['email','rationId','password']
 #user Get profile Serializer
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = RationUser
-        fields = ['id','email','name',]
+        fields = ['id','email','rationId','name',]
 
 # User Password Change Serializer
 class UserChangePasswordSerializer(serializers.Serializer):

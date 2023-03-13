@@ -1,32 +1,30 @@
 from django.contrib import admin
 from RationSystem.models import RationUser
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-# Register your models here.
-class UserModelAdmin(BaseUserAdmin):
+from django.utils.html import format_html
 
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserModelAdmin
-    # that reference specific fields on auth.User.
-    list_display = ('id', 'email', 'rationId' ,'name', 'tc','is_admin')
+class UserModelAdmin(BaseUserAdmin):
+    def image_tag(self, obj):
+        return format_html('<img src="{}" style="width: 120px; height:110px;">'.format(obj.face_image.url))
+
+    list_display = ('id', 'email', 'rationId', 'name', 'tc', 'is_admin', 'image_tag')
     list_filter = ('is_admin',)
     fieldsets = (
-        ('User Credentials', {'fields': ('email','rationId', 'password')}),
-        ('Personal info', {'fields': ('name','tc',)}),
+        ('User Credentials', {'fields': ('email', 'rationId', 'face_image', 'password')}),
+        ('Personal info', {'fields': ('name', 'tc',)}),
         ('Permissions', {'fields': ('is_admin',)}),
     )
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
+    
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email','rationId','name','tc','password1', 'password2'),
+            'fields': ('email', 'rationId', 'name', 'tc', 'face_image', 'password1', 'password2'),
         }),
     )
-    search_fields = ('email','rationId')
-    ordering = ('email','id')
+    
+    search_fields = ('email', 'rationId')
+    ordering = ('email', 'id')
     filter_horizontal = ()
 
 
-# Now register the new UserAdmin...
 admin.site.register(RationUser, UserModelAdmin)
-
